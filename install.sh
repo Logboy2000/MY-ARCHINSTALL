@@ -10,6 +10,7 @@ log() {
   echo -e "[${BLUE}SuperCoolArchInstall${NC}]${GREEN} $1${NC}"
 }
 setfont ter-132b
+umount -a
 
 # --- 1. Ask user for target disk ---
 echo "Available disks:"
@@ -68,5 +69,6 @@ mount $ROOT_PART /mnt
 mount --mkdir $BOOT_PART /mnt/boot
 
 # 7. Rank Mirrors
-log "Ranking Mirrors........................                  hell yeah"
+log "Ranking Mirrors.......   hell yeah"
+ping 
 sudo reflector --country CA,US --protocol https --latest 10 --age 12 --sort rate --save /etc/pacman.d/mirrorlist
