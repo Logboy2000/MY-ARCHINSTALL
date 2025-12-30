@@ -1,13 +1,16 @@
 #!/bin/bash
 set -e
 
+log() {
+  echo "[SuperCoolArchInstall] $1"
+}
 setfont ter-132b
 
 # --- 1. Ask user for target disk ---
 echo "Available disks:"
 lsblk -d -o NAME,SIZE,MODEL
 echo
-read -rp "Enter the disk to format (e.g., /dev/sda): " DISK
+read -rp "Enter the disk to format: " DISK
 
 # --- Confirm ---
 echo "WARNING: ALL DATA ON $DISK WILL BE LOST!"
@@ -16,17 +19,18 @@ if [[ "$CONFIRM" != "yes" ]]; then
     echo "Aborting."
     exit 1
 fi
+log "Partitioning time yayyyyyyyyyyyyyyyyyyyyyyyyyyyyyy!!!"
 
-# --- 2. Show total disk and RAM for reference ---
+# 2. Show total disk and RAM for reference 
 DISK_SIZE=$(lsblk -dn -o SIZE "$DISK")
 RAM_SIZE=$(free -h | awk '/Mem:/ {print $2}')
 echo "Disk size: $DISK_SIZE"
 echo "RAM size: $RAM_SIZE"
 
-# --- 3. Ask for swap size ---
+# 3. Ask for swap size 
 read -rp "Enter swap size (e.g., 4G): " SWAP_SIZE
 
-# --- 4. Partitioning ---
+# 4. Partitioning 
 # We'll use parted in GPT mode
 parted -s "$DISK" mklabel gpt
 
@@ -40,7 +44,7 @@ parted -s "$DISK" mkpart primary linux-swap 2049MiB "$((2049 + ${SWAP_SIZE%G} * 
 # Root partition (rest of disk)
 parted -s "$DISK" mkpart primary ext4 "$((2049 + ${SWAP_SIZE%G} * 1024))MiB" 100%
 
-# --- 5. Format partitions ---
+# 5. Format partitions 
 BOOT_PART="${DISK}1"
 SWAP_PART="${DISK}2"
 ROOT_PART="${DISK}3"
@@ -50,5 +54,15 @@ mkswap "$SWAP_PART"
 swapon "$SWAP_PART"
 mkfs.ext4 "$ROOT_PART"
 
-echo "Partitioning and formatting complete."
+log "Partitioning and formatting complete"
 echo "Boot: $BOOT_PART, Swap: $SWAP_PART, Root: $ROOT_PART"
+
+# 6. Mount Shit
+log "now we mount this shit"
+mount $ROOT_PART /mnt
+mount --mkdir $BOOT_PART /mnt/boot
+swapon $SWAP_PART
+
+# 7. Rank Mirrors
+log "Ranking Mirrors........................                  hell yeah"
+sudo reflector --country CA,US --protocol https --latest 10 --age 12 --sort rate --save /etc/pacman.d/mirrorlist
