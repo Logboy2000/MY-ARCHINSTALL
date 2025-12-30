@@ -66,7 +66,6 @@ echo "Boot: $BOOT_PART, Swap: $SWAP_PART, Root: $ROOT_PART"
 log "now we mount this shit"
 mount $ROOT_PART /mnt
 mount --mkdir $BOOT_PART /mnt/boot
-swapon $SWAP_PART
 
 # 7. Rank Mirrors
 log "Ranking Mirrors........................                  hell yeah"
